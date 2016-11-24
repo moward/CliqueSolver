@@ -1,4 +1,7 @@
+#pragma once
+
 #include <vector>
+#include <memory>
 #include "minisat/core/Solver.h"
 #include "Graph.h"
 

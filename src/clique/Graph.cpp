@@ -2,6 +2,8 @@
 #include <fstream>
 #include <algorithm>    // std::max
 #include <cassert>      // assert
+#include <string>
+#include <stdio.h>      // sscanf
 #include "Graph.h"
 
 namespace CliqueSolver {
@@ -10,7 +12,7 @@ void Graph::addEdge(int u, int v)
 {
     assert(u != v);
 
-    maxVertex = max(max(maxVertex, u), v);
+    maxVertex = std::max(std::max(maxVertex, u), v);
     if (!edges.count(u))
     {
         // u unknown
@@ -34,7 +36,7 @@ void Graph::addEdge(int u, int v)
 
     auto insertRetUv = edges[u].insert(v);
 
-    if (invertRevUv.second)
+    if (insertRetUv.second)
     {
         // insert edge count
         numEdges++;
@@ -69,20 +71,21 @@ int Graph::getNumEdges()
 /**
  * Takes in a file of space-separated edges and produces a graph
  */
-Graph makeGraph(ofstream& file)
+Graph makeGraph(std::fstream& file)
 {
     Graph graph;
-    string line;
+    std::string line;
     int u, v;
 
-    while (getline(file, line))
+    while (std::getline(file, line))
     {
-        int numArgs = sscanf(line, "%d %d", &u, &v);
+        int numArgs = sscanf(line.c_str(), "%d %d", &u, &v);
         if (numArgs == 2) {
             graph.addEdge(u, v);
         }
     }
 
-    myfile.close();
+    file.close();
+    return std::move(graph);
 }
 }

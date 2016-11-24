@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include <set>
 #include <unordered_map>
@@ -34,6 +36,6 @@ public:
 /**
  * Takes in a file of space-separated edges and produces a graph
  */
-Graph makeGraph(ofstream& file);
+Graph makeGraph(std::ofstream& file);
 
 }
