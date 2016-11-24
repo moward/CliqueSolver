@@ -1,0 +1,28 @@
+\documentclass[]{article}
+
+%opening
+\title{Studying the Application of SAT Solvers to the Clique Problem}
+\author{Matthew Howard}
+
+\begin{document}
+	
+	\maketitle
+	
+	\begin{abstract}
+		Abstract
+	\end{abstract}
+	
+	\section{Overview}
+	
+	\section{Obtaining Data Sets}
+	We want to analyze our clique solver on both real-world and randomly-generated graphs. We originally intended to collect data from the Facebook friend network of the author. For instance, vertices would correspond to friends of the author (not including the author as a vertex) and edges would correspond to friendships between vertices in the graph. Running analyses on real data allows us to draw social insights from the resulting cluster. For interesting, it would be interesting to identify common traits between the people composing the largest clique, e.g. membership in a club.
+	
+	The Facebook Graph API provides REST access to the required information, including lists of friends and lists of mutual friends in easily parsable formats. However, since the release of version 2.0 of the API, lists will only show friends who have actively logged into the API Application (in this case our data collection tool)\footnote{https://developers.facebook.com/bugs/1502515636638396/}. This severely restricts the usefulness of this data. One alternative to collecting the same data would be to write a web-scraping tool using a browser automation tool like Selenium. However, this solution begs difficult ethical and legal implications since neither Facebook nor the users consent to this style of data collection.
+	
+	Luckily, the Stanford Network Analysis Project publishes a number of anonymized, real-world datasets including a 4039-node graph of Facebook friend data. While the anonymous nature of this data limits social insights that could come out of our analysis, the data will nonetheless fulfill our goal of testing our solvers on real-world data.
+	
+	\section{Reduction Strategies}
+	
+	\section{Resources}
+	
+\end{document}
