@@ -5,6 +5,8 @@
 namespace CliqueSolver {
 class FirstStrategy : public Strategy
 {
+	using Strategy::Strategy;
+
 public:
     virtual void SetClauses(Minisat::Solver &solver) override;
 

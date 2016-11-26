@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <unordered_map>
+#include <memory>
 
 namespace CliqueSolver {
 
@@ -36,6 +37,6 @@ public:
 /**
  * Takes in a file of space-separated edges and produces a graph
  */
-Graph makeGraph(std::ofstream& file);
+std::shared_ptr<Graph> makeGraph(std::fstream& file);
 
 }

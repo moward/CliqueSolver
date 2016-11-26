@@ -1,14 +1,16 @@
-CXX=clang-3.5
+CXX=g++
 CFLAGS=-Wall -std=gnu++11 -g -I ./build/minisat/include -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS -Wno-parentheses -Wextra
-LDFLAGS=-lm -Lbuild/minisat/lib -lminisat
-SOURCES=FirstStrategy.cpp Graph.cpp
+LDFLAGS=-lm -lz -Lbuild/minisat/lib -static -lminisat
+SOURCES=FirstStrategy.cpp Graph.cpp Main.cpp
 OBJECTS=$(SOURCES:.cpp=.o)
 OBJECTPATHS=$(addprefix $(ODIR),$(OBJECTS))
-EXECUTABLE=
+EXECUTABLE=build/bin/CliqueSolver
 ODIR=build/obj/
 DEPS=$(wildcard *.h)
 
 all: $(EXECUTABLE) $(OBJECTPATHS)
+
+echo:
 	echo $(OBJECTPATHS)
 
 $(OBJECTPATHS):$(ODIR)%.o: src/clique/%.cpp $(DEPS)
@@ -16,11 +18,11 @@ $(OBJECTPATHS):$(ODIR)%.o: src/clique/%.cpp $(DEPS)
 #$(addprefix $(ODIR),$(OBJECTS)): %.c $(DEPS)
 #	$(CXX) -c -o $@ $< $(CFLAGS)
 
-$(EXECUTABLE): $(OBJECTS) 
-	$(CXX) $(LDFLAGS) $(OBJECTS) -o $@
+$(EXECUTABLE): $(OBJECTPATHS)
+	$(CXX) $(OBJECTPATHS) $(LDFLAGS) -o $@
 
 .cpp.o:
 	$(CXX) $(CFLAGS) $< -o $@
 
 clean:
-	rm -f $(ODIR)/*.o
+	rm -f $(ODIR)*.o $(EXECUTABLE)

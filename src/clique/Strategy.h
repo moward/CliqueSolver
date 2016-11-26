@@ -9,9 +9,10 @@ namespace CliqueSolver {
 class Strategy
 {
 public:
-    Strategy(std::shared_ptr<Graph> graph)
+    explicit Strategy(std::shared_ptr<Graph> sp_graph, int k)
     {
-        m_graph = graph;
+        m_graph = sp_graph;
+        m_k = k;
     }
 
     virtual void SetClauses(Minisat::Solver &solver) = 0;
@@ -20,5 +21,6 @@ public:
 
 protected:
     std::shared_ptr<Graph> m_graph;
+    int m_k;
 };
 }

@@ -71,9 +71,9 @@ int Graph::getNumEdges()
 /**
  * Takes in a file of space-separated edges and produces a graph
  */
-Graph makeGraph(std::fstream& file)
+std::shared_ptr<Graph> makeGraph(std::fstream& file)
 {
-    Graph graph;
+    std::shared_ptr<Graph> sp_graph = std::make_shared<Graph>();
     std::string line;
     int u, v;
 
@@ -81,11 +81,10 @@ Graph makeGraph(std::fstream& file)
     {
         int numArgs = sscanf(line.c_str(), "%d %d", &u, &v);
         if (numArgs == 2) {
-            graph.addEdge(u, v);
+            sp_graph->addEdge(u, v);
         }
     }
 
-    file.close();
-    return std::move(graph);
+    return sp_graph;
 }
 }
