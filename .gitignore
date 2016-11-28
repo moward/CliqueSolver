@@ -4,3 +4,5 @@
 doc/*.aux
 doc/*.log
 doc/*.synctex.gz
+build/bin/CliqueSolver
+build/minisat/*

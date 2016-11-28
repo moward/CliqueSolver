@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <errno.h>
 #include <signal.h>
 #include <zlib.h>
+#include <stdio.h>
 
 #include "Graph.h"
 #include "FirstStrategy.h"
@@ -88,13 +89,21 @@ int main(int argc, char** argv)
 
         parseOptions(argc, argv, true);
 
-        Solver S;
+        Solver S {};
         double initial_time = cpuTime();
+
+        S.verbosity = verb;
 
         solver = &S;
         // Use signal handlers that forcibly quit:
         signal(SIGINT, SIGINT_exit);
         signal(SIGXCPU,SIGINT_exit);
+
+        if (argc < 2)
+        {
+        	fprintf(stderr, "Missing data file\n");
+        	exit(1);
+        }
 
         std::fstream file { argv[1], std::fstream::in };
 		std::shared_ptr<Graph> sp_graph { makeGraph(file) };
@@ -102,9 +111,9 @@ int main(int argc, char** argv)
 		// TODO: take from CMD
 		int k = 5;
 
-		FirstStrategy solverStrategy ( sp_graph, k );
+		FirstStrategy solverStrategy ( sp_graph, k, &S );
 
-		solverStrategy.SetClauses(S);
+		solverStrategy.setClauses();
 
 		file.close();
         

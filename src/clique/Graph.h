@@ -25,6 +25,8 @@ private:
     int maxVertex;
 
 public:
+	Graph();
+
     void addEdge(int u, int v);
 
     bool containsEdge(int u, int v);
@@ -32,6 +34,8 @@ public:
     int getNumVertices();
 
     int getNumEdges();
+
+    int getMaxVertex();
 };
 
 /**
