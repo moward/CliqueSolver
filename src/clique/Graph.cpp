@@ -4,6 +4,7 @@
 #include <cassert>      // assert
 #include <string>
 #include <stdio.h>      // sscanf
+
 #include "Graph.h"
 
 namespace CliqueSolver {

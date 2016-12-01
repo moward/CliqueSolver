@@ -1,11 +1,12 @@
 #include <vector>
+#include <algorithm>    // std::max
 
 #include "Strategy.h"
 #include "FirstStrategy.h"
 
 namespace CliqueSolver {
 
-int nextPower2(int v)
+/*int nextPower2(int v)
 {
     v--;
     v |= v >> 1;
@@ -14,6 +15,19 @@ int nextPower2(int v)
     v |= v >> 8;
     v |= v >> 16;
     return v++;
+}*/
+
+/*
+ * The base 2 logarithm of a number, rounded up
+ */
+size_t log2Up(size_t v) {
+    v--;
+    int ex;
+    while (v > 0) {
+        v = v >> 1;
+        ex++;
+    }
+    return ex;
 }
 
 void FirstStrategy::setClauses()
@@ -22,7 +36,7 @@ void FirstStrategy::setClauses()
     int n = m_graph->getMaxVertex();
 
     // add variable for each vertex
-    for (u = 0; u < n; u++)
+    while (n >= m_solver->nVars())
     {
         m_solver->newVar();
     }
@@ -40,12 +54,70 @@ void FirstStrategy::setClauses()
     }
 
     // add adders
-    //int k_up { nextPower2(m_k) };
-    // least integer [k_prime] such that [m_k + k_prime] is a power of 2
-    //int k_prime { k_up - m_k };
+    size_t log_k { log2Up(m_k) };
+
+    size_t k_up { 1u << log_k };
+
+    // least integer [k_prime] such that [m_k + k_prime] is 2 ^ log_k
+    size_t k_prime { k_up - m_k };
+
+    // get number of vertices in clique
+    std::vector<Minisat::Var> clique_size (addRangeVariables(1, n + 1, log_k + 1u));
+
+    std::vector<Minisat::Var> clique_size_k_prime (addNBitAdder(log_k + 1u, clique_size, intToVector(k_prime)));
+
+    // inequality check clique_size >= m_k
+    m_solver->addClause(Minisat::mkLit(clique_size_k_prime[log_k], true));
 }
 
-std::pair<Minisat::Var, Minisat::Var> FirstStrategy::addHalfAdder(Minisat::Var a, Minisat::Var b, Minisat::Var c)
+std::vector<Minisat::Var> FirstStrategy::intToVector(size_t n)
+{
+    std::vector<Minisat::Var> v;
+
+    while (n > 0)
+    {
+        v.push_back(n & 0x1 ? getTrueVar() : getFalseVar());
+        n = n << 1;
+    }
+
+    return std::move(v);
+}
+
+/*
+ * Add together the values of variables [a] through [b], including [a] but not [b]
+ * Returns a binary vector of size [max (max_bits, # of bits to represent (b - a))]
+ * Note: Uses a divide-and-conquer adder tree
+ */
+std::vector<Minisat::Var> FirstStrategy::addRangeVariables(int a, int b, size_t max_bits)
+{
+    assert(a < b);
+    assert(a > 0);
+    assert(b > 0);
+
+    if (b == a + 1)
+    {
+        // base case
+        return std::vector<Minisat::Var> { a };
+    } else {
+        // divide and conquery
+        int size { b - a };
+        int mid {a + size / 2};
+
+        std::vector<Minisat::Var> leftChild (addRangeVariables(a, mid, max_bits));
+        std::vector<Minisat::Var> rightChild (addRangeVariables(mid, b, max_bits));
+
+        size_t bitsNeeded { log2Up(size + 1u) };
+
+        // add subtrees together
+        return addNBitAdder(std::min(max_bits, bitsNeeded), leftChild, rightChild);
+    }
+}
+
+/**
+ * Takes in three bits and outputs the sum and carry out of each
+ * Returns: A pair of new variables. First is sum. Second is carry out.
+ */
+std::pair<Minisat::Var, Minisat::Var> FirstStrategy::addFullAdder(Minisat::Var a, Minisat::Var b, Minisat::Var c)
 {
     Minisat::Lit la ( Minisat::mkLit(a, true) );
     Minisat::Lit lb ( Minisat::mkLit(b, true) );
@@ -98,23 +170,58 @@ Minisat::Var FirstStrategy::getFalseVar() {
     return m_falseVar;
 }
 
-std::vector<Minisat::Var> FirstStrategy::addNBitAdder(size_t n, std::vector<Minisat::Var> &A, std::vector<Minisat::Var> &B)
-{
-    assert(A.size() == n && B.size() == n);
+Minisat::Var FirstStrategy::getTrueVar() {
+    if (m_trueVar == Minisat::var_Undef) {
+        // create new variable
+        m_trueVar = m_solver->newVar();
 
+        // force false
+        m_solver->addClause(Minisat::mkLit(m_trueVar, true));
+    }
+    return m_trueVar;
+}
+
+/*
+ * Construct an n-bit adder, for A + B. Outputs n-bit vector
+ * If sum doesn't fit into n-bits, the remaining bits
+ * will be cut off
+ */
+std::vector<Minisat::Var> FirstStrategy::addNBitAdder(size_t n, const std::vector<Minisat::Var> &A, const std::vector<Minisat::Var> &B)
+{
     std::vector<Minisat::Var> sum {};
 
     Minisat::Var carry ( getFalseVar() );
 
+    size_t input_bits { std::max(A.size(), B.size()) };
+
     size_t i;
-    for (i = 0; i < n; i++)
+
+    int a, b;
+
+    for (i = 0; i < input_bits; i++)
     {
-        auto resultPair ( addHalfAdder(A[i], B[i], carry) );
+        a = b = getFalseVar();
+
+        if (i < A.size()) {
+            a = A[i];
+        }
+
+        if (i < B.size()) {
+            b = B[i];
+        }
+
+        auto resultPair ( addFullAdder(a, b, carry) );
         sum.push_back(resultPair.first);
         carry = resultPair.second;
     }
 
-    sum.push_back(carry);
+    // fill remaining with carry and then zeros
+    while (sum.size() < n) {
+        sum.push_back(carry);
+        carry = getFalseVar();
+    }
+
+    assert (sum.size() == n);
 
     return std::move(sum);
 }
