@@ -1,12 +1,14 @@
 '''
 Graph normalizer
+Takes in a graph (in the form of a list of edges) and outputs an isomorphic graph
+with minimally-numbered vertices, starting from 1
 '''
 
 import sys
 import re
 
 if len(sys.argv) < 3:
-    print('Not enough arguments')
+    raise ValueError('Not enough arguments')
 
 in_filename = sys.argv[1]
 
