@@ -22,9 +22,9 @@ namespace CliqueSolver {
  */
 size_t log2Up(size_t v) {
     v--;
-    int ex;
+    int ex = 0;
     while (v > 0) {
-        v = v >> 1;
+        v = v / 2;
         ex++;
     }
     return ex;
@@ -48,12 +48,13 @@ void FirstStrategy::setClauses()
         {
             if (!m_graph->containsEdge(u, v))
             {
-                m_solver->addClause(Minisat::mkLit(u - 1, false), Minisat::mkLit(v - 1, false));
+                m_solver->addClause(Minisat::mkLit(u, true), Minisat::mkLit(v, true));
             }
         }
     }
 
-    // add adders
+    // Add adders
+
     size_t log_k { log2Up(m_k) };
 
     size_t k_up { 1u << log_k };
@@ -61,13 +62,15 @@ void FirstStrategy::setClauses()
     // least integer [k_prime] such that [m_k + k_prime] is 2 ^ log_k
     size_t k_prime { k_up - m_k };
 
+    printf("k: %d\nLog k: %lu\nnext power 2: %lu\nk_prime: %lu\n", m_k, log_k, k_up, k_prime);
+
     // get number of vertices in clique
     std::vector<Minisat::Var> clique_size (addRangeVariables(1, n + 1, log_k + 1u));
 
     std::vector<Minisat::Var> clique_size_k_prime (addNBitAdder(log_k + 1u, clique_size, intToVector(k_prime)));
 
     // inequality check clique_size >= m_k
-    m_solver->addClause(Minisat::mkLit(clique_size_k_prime[log_k], true));
+    m_solver->addClause(Minisat::mkLit(clique_size_k_prime[log_k], false));
 }
 
 std::vector<Minisat::Var> FirstStrategy::intToVector(size_t n)
@@ -77,7 +80,7 @@ std::vector<Minisat::Var> FirstStrategy::intToVector(size_t n)
     while (n > 0)
     {
         v.push_back(n & 0x1 ? getTrueVar() : getFalseVar());
-        n = n << 1;
+        n = n / 2;
     }
 
     return std::move(v);
@@ -119,13 +122,13 @@ std::vector<Minisat::Var> FirstStrategy::addRangeVariables(int a, int b, size_t 
  */
 std::pair<Minisat::Var, Minisat::Var> FirstStrategy::addFullAdder(Minisat::Var a, Minisat::Var b, Minisat::Var c)
 {
-    Minisat::Lit la ( Minisat::mkLit(a, true) );
-    Minisat::Lit lb ( Minisat::mkLit(b, true) );
-    Minisat::Lit lc ( Minisat::mkLit(c, true) );
+    Minisat::Lit la ( Minisat::mkLit(a, false) );
+    Minisat::Lit lb ( Minisat::mkLit(b, false) );
+    Minisat::Lit lc ( Minisat::mkLit(c, false) );
 
     // carry out
     Minisat::Var c_out { m_solver->newVar() };
-    Minisat::Lit lc_out ( Minisat::mkLit(c_out, true) );
+    Minisat::Lit lc_out ( Minisat::mkLit(c_out, false) );
 
     // c_out = AB + BC + AC
     m_solver->addClause(~lc_out, la, lb);
@@ -139,10 +142,10 @@ std::pair<Minisat::Var, Minisat::Var> FirstStrategy::addFullAdder(Minisat::Var a
     // Note: this implementation actually uses one intermediary half_s,
     // which is not explicitly necessary but makes the clauses cleaner
     Minisat::Var sum { m_solver->newVar() };
-    Minisat::Lit lsum ( Minisat::mkLit(sum, true) );
+    Minisat::Lit lsum ( Minisat::mkLit(sum, false) );
 
     Minisat::Var half_s { m_solver->newVar() };
-    Minisat::Lit lhalf_s ( Minisat::mkLit(half_s, true) );
+    Minisat::Lit lhalf_s ( Minisat::mkLit(half_s, false) );
 
     // lhalf = A xor B
     m_solver->addClause(~lhalf_s, la, lb);
@@ -165,7 +168,7 @@ Minisat::Var FirstStrategy::getFalseVar() {
         m_falseVar = m_solver->newVar();
 
         // force false
-        m_solver->addClause(Minisat::mkLit(m_falseVar, false));
+        m_solver->addClause(Minisat::mkLit(m_falseVar, true));
     }
     return m_falseVar;
 }
@@ -176,7 +179,7 @@ Minisat::Var FirstStrategy::getTrueVar() {
         m_trueVar = m_solver->newVar();
 
         // force false
-        m_solver->addClause(Minisat::mkLit(m_trueVar, true));
+        m_solver->addClause(Minisat::mkLit(m_trueVar, false));
     }
     return m_trueVar;
 }
@@ -194,11 +197,14 @@ std::vector<Minisat::Var> FirstStrategy::addNBitAdder(size_t n, const std::vecto
 
     size_t input_bits { std::max(A.size(), B.size()) };
 
+    // make sure we're not asking for unnecessary leading zeros
+    assert (input_bits + 1 >= n);
+
     size_t i;
 
     int a, b;
 
-    for (i = 0; i < input_bits; i++)
+    for (i = 0; i < input_bits && i < n; i++)
     {
         a = b = getFalseVar();
 
@@ -228,8 +234,16 @@ std::vector<Minisat::Var> FirstStrategy::addNBitAdder(size_t n, const std::vecto
 
 std::vector<int> FirstStrategy::getClique() const
 {
-    // TODO: implement
-    return std::vector<int>{};
+    std::vector<int> clique {};
+    int n = m_graph->getMaxVertex();
+    
+    for (int i = 1; i < n; i++) {
+        if (m_solver->model[i] == Minisat::l_True)
+        {
+            clique.push_back(i);
+        }
+    }
+    return std::move(clique);
 }
 
 }

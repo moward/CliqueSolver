@@ -84,6 +84,7 @@ int main(int argc, char** argv)
         IntOption    verb   ("MAIN", "verb",   "Verbosity level (0=silent, 1=some, 2=more).", 1, IntRange(0, 2));
         IntOption    cpu_lim("MAIN", "cpu-lim","Limit on CPU time allowed in seconds.\n", INT32_MAX, IntRange(0, INT32_MAX));
         IntOption    mem_lim("MAIN", "mem-lim","Limit on memory usage in megabytes.\n", INT32_MAX, IntRange(0, INT32_MAX));
+        IntOption    k      ("MAIN", "k", "Minimum clique size.\n", 5, IntRange(1, INT32_MAX));
         BoolOption   cnt_all("MAIN", "all",    "Count all models.", false);
         BoolOption   use_pol("MAIN", "pol",    "Set preferred polarity for minimal model search.", true);
 
@@ -101,21 +102,21 @@ int main(int argc, char** argv)
 
         if (argc < 2)
         {
-        	fprintf(stderr, "Missing data file\n");
-        	exit(1);
+            fprintf(stderr, "Missing data file\n");
+            exit(1);
         }
 
         std::fstream file { argv[1], std::fstream::in };
-		std::shared_ptr<Graph> sp_graph { makeGraph(file) };
+        std::shared_ptr<Graph> sp_graph { makeGraph(file) };
 
-		// TODO: take from CMD
-		int k = 5;
+        FirstStrategy solverStrategy ( sp_graph, k, &S );
 
-		FirstStrategy solverStrategy ( sp_graph, k, &S );
+        solverStrategy.setClauses();
 
-		solverStrategy.setClauses();
+        file.close();
 
-		file.close();
+        // output
+        FILE* res = (argc >= 3) ? fopen(argv[2], "wb") : NULL;
         
         if (verb > 0)
         {
@@ -133,7 +134,7 @@ int main(int argc, char** argv)
         if (verb > 0)
         {
             printf("|  Parse time:           %12.2f s                                       |\n",
-            	parsed_time - initial_time);
+                parsed_time - initial_time);
             printf("|                                                                             |\n");
         }
  
@@ -149,12 +150,59 @@ int main(int argc, char** argv)
             printf("UNSATISFIABLE\n");
             exit(20);
         }
-        
-        if (verb > 0)
+
+        vec<Lit> dummy;
+        lbool ret = S.solveLimited(dummy);
+        if (S.verbosity > 0)
         {
-            printf("===============================================================================\n");
-            printStats(S);
+            S.printStats();
             printf("\n");
+        }
+
+        printf(ret == l_True ? "SATISFIABLE\n" : ret == l_False ? "UNSATISFIABLE\n" : "INDETERMINATE\n");
+
+        if (ret == l_True)
+        {
+            // output clique
+            std::vector<int> clique {solverStrategy.getClique()};
+
+            printf("Clique size: %lu\n", clique.size());
+
+            printf("Clique: ");
+
+            for (auto i : clique)
+            {
+                printf("%d ", i);
+            }
+            printf("\n");
+        }
+
+        // print to output file
+        if (res != NULL)
+        {
+            if (ret == l_True)
+            {
+                fprintf(res, "SAT\n");
+                for (int i = 0; i < S.nVars(); i++)
+                {
+                    if (S.model[i] != l_Undef)
+                    {
+                        fprintf(res,
+                            "%s%s%d",
+                            (i == 0) ? "" : " ",
+                            (S.model[i] == l_True) ? "" : "-",
+                            i + 1);
+                    }
+                }
+                fprintf(res, " 0\n");
+            }
+            else if (ret == l_False)
+            {
+                fprintf(res, "UNSAT\n");
+            } else {
+                fprintf(res, "INDET\n");
+            }
+            fclose(res);
         }
 
         return 0;
