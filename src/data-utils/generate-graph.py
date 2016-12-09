@@ -1,14 +1,15 @@
 '''
 generate-graph.ph
 Generates a random graph, given a number of vertices and edges
-Usage: n m output.edges
+Graph is normalized, i.e. vertices numbered continuously as 1 ... n
 '''
 
 import sys
 import random
 
 if len(sys.argv) != 4:
-    raise ValueError('Not enough arguments')
+	print('Usage: python %s n m <output_file>.edges' % sys.argv[0])
+	exit(0)
 
 n = int(sys.argv[1])
 

@@ -6,17 +6,6 @@
 
 namespace CliqueSolver {
 
-/*int nextPower2(int v)
-{
-    v--;
-    v |= v >> 1;
-    v |= v >> 2;
-    v |= v >> 4;
-    v |= v >> 8;
-    v |= v >> 16;
-    return v++;
-}*/
-
 /*
  * The base 2 logarithm of a number, rounded up
  */
@@ -62,7 +51,7 @@ void FirstStrategy::setClauses()
     // least integer [k_prime] such that [m_k + k_prime] is 2 ^ log_k
     size_t k_prime { k_up - m_k };
 
-    printf("k: %d\nLog k: %lu\nnext power 2: %lu\nk_prime: %lu\n", m_k, log_k, k_up, k_prime);
+    // printf("k: %d\nLog k: %lu\nnext power 2: %lu\nk_prime: %lu\n", m_k, log_k, k_up, k_prime);
 
     // get number of vertices in clique
     std::vector<Minisat::Var> clique_size (addRangeVariables(1, n + 1, log_k + 1u));
