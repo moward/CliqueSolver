@@ -71,18 +71,7 @@
 	%Since the probability of finding a large clique in a graph generated from this method is very low since the edges are spread uniformly among all node pairs and so high concentrations of edges within certain subgraphs are unlikely compared to in a social network graph, where they arise naturally. Since we want to test the upper limits of our solver, we want to produce arbitrarily large graphs with high clique numbers. A simple approach is to randomly generate a graph with different edge probabilities according to vertex groupings. Specifically, we want to 
 	
 	\subsection{Analyzing the Data}
-	Before we run and evaluate our clique solver, we wish to analyze the graph datasets. We leverage ``igraph'', an open source graph analysis library with a Python wrapper to collect the following statistics:
-	\begin{enumerate}
-		\item $n$ and $m$, the number of nodes and edges in the graph
-		\item Edge density, defined as $\frac{m}{n (n - 1) / 2}$
-		\item Diameter, the maximum eccentricity of nodes in $G$
-		\item Radius, the minimum eccentricity of nodes in $G$
-		\item Number of connected components
-		\item $\omega(G)$, as well as the time required to compute $\omega(G)$
-	\end{enumerate}
-	where the eccentricity of a vertex $v$ is $\epsilon(v) = \max_{u \in V} distance(u, v)$.
-	
-	igraph's $\omega(G)$ function is based off of an algorithm due to Tsukiyama \textit{et al.}\cite{doi:10.1137/0206036} and has a worst-case runtime of $O\left(3^{n/3}\right)$\cite{igraph2016}. This implementation will serve as a point of comparison for the performance of our \clique{} solver.
+	Before we run and evaluate our clique solver, we wish to analyze the graph datasets. We leverage ``igraph'', an open source graph analysis library with a Python wrapper to compute $\omega(G)$. igraph's $\omega(G)$ routine is based off of an algorithm due to Tsukiyama \textit{et al.}\cite{doi:10.1137/0206036} and has a worst-case runtime of $O\left(3^{n/3}\right)$\cite{igraph2016}. This implementation will serve as a point of comparison for the performance of our \clique{} solver.
 	
 	\section{Reduction Strategy}
 	Given a graph $G$ and a positive integer $k$, we want to produce an instance of \sat{} such that the \sat{} system is satisfiable if and only if our graph contains a clique $G'$ of at least size $k$. Every \sat{} instance consists of variables and clauses. Since a clique is defined by its vertex set and a solution to \sat{} is defined by a set of variable assignments, we naturally correspond vertices to variables. For all $v \in V$, let $x_v$ represent the variable indicating whether $v \in V'$.
