@@ -1,5 +1,5 @@
 '''
-graph-stats.ph
+graph-stats.py
 Given an edge file, produces statistics about the graph
 
 Graph is assumed to be normalized, i.e. vertices numbered continuously
@@ -8,7 +8,6 @@ as 1 ... n
 
 import sys
 import igraph
-import re
 import time
 
 # helpers
@@ -60,6 +59,10 @@ with open(in_filename) as fin:
 
 	output_stat('radius', g.radius())
 
+	clusters = g.clusters()
+
+	output_stat('# CC', len(clusters))
+
 	clique_start = time.clock()
 
 	output_stat('omega', g.omega())
@@ -67,9 +70,5 @@ with open(in_filename) as fin:
 	clique_end = time.clock()
 
 	output_stat('omega time', clique_end - clique_start)
-
-	clusters = g.clusters()
-
-	output_stat('# CC', len(clusters))
 
 	print(','.join(stats_list))
