@@ -31,7 +31,7 @@
 	
 	\section{The Clique Problem}
 	
-	Let us start by defining terminology. A \textit{graph} is a duple $G = (V, E)$ consisting of a vertex set $V$ and an edge set $E \subseteq \{(u, v) ~\vert~ u, v \in~V, u \neq v\}$. We will follow the convention $n = |V|$ and $m = |E|$. An \textit{induced subgraph} $G' = (V', E')$ of $G$ consists of a vertex set $V' \subseteq V$ and the maximal edge subset $E' \subseteq E$ such that the endpoints of each edge are in $V'$, formally $E' = \{(u, v) \in E ~\vert~ u, v \in V'\}$. For the purpose of this project1, we are concerned only with undirected, unweighted graphs.
+	Let us start by defining terminology. A \textit{graph} is a duple $G = (V, E)$ consisting of a vertex set $V$ and an edge set $E \subseteq \{(u, v) ~\vert~ u, v \in~V, u \neq v\}$. We will follow the convention $n = |V|$ and $m = |E|$. An \textit{induced subgraph} $G' = (V', E')$ of $G$ consists of a vertex set $V' \subseteq V$ and the maximal edge subset $E' \subseteq E$ such that the endpoints of each edge are in $V'$, formally $E' = \{(u, v) \in E ~\vert~ u, v \in V'\}$. For the purpose of this project, we are concerned only with undirected, unweighted graphs.
 	
 	A graph is \textit{complete} if there exists an edge between every two distinct vertices.
 	
@@ -53,7 +53,7 @@
 	Secondly, the hardness of \clique{} is often exploited in proving the NP-hardness of \textsc{vertex-cover} and other NP-hard problems which indicates it is a powerful and useful problem. Finally, \clique{} is ``hard'' in the algorithmic sense that there does not exist an approximation algorithm which performs better than $n^{1 - \epsilon}$\cite{Hastad1999}. This hardness of approximation sets \clique{} apart from many other classical NP-complete problems.
 	
 	\section{Selection of a SAT Solver}
-	Rather than performing a survey of different SAT solvers (which is already done each year on a global scale), we chose to focus our efforts one solver in particular. MiniSat is widely used, open source, minimalistic, and designed for integration, which makes it an good candidate to serve as the foundation for our \clique{} solver. MiniSat works through conflict-driven learning and unit propagation{Een03anextensible}.
+	Rather than performing a survey of different SAT solvers (which is already done each year on a global scale), we chose to focus our efforts one solver in particular. MiniSat is widely used, open source, minimalistic, and designed for integration, which makes it an good candidate to serve as the foundation for our \clique{} solver. MiniSat works through conflict-driven learning and unit propagation\cite{Een03anextensible}.
 	
 	\section{Obtaining Data Sets}
 	We want to analyze our clique solver on both real-world and randomly-generated graphs. We decide to go with Facebook friend networks as our source of real data. Vertices correspond to friends of a central user (without including the central user as a vertex) and edges correspond to friendships between users in the graph. A clique is intuitively a group of people who are all friends with each other. Running analyses on real data allows us to draw social insights from our application. For example, given a large clique, we can identify common traits between the constituents, such as membership in a club or a certain place of employment.
@@ -117,7 +117,7 @@
 		\caption{Number of \sat{} Literals and Variables when $k = \omega(G)$}
 		\begin{tabular}{|c|c|c|c|c|}
 			\hline
-			Name                & $n$  & $m$   & Variables & Literals \\ \hline
+			Name                & $n$  & $m$   & Variables & Clauses \\ \hline
 			\texttt{facebook.a} & 333  & 5038  & 2286      & 60199    \\ \hline
 			\texttt{facebook.b} & 1034 & 53498 & 7193      & 531836   \\ \hline
 			\texttt{facebook.c} & 224  & 6384  & 1559      & 26819    \\ \hline
@@ -192,10 +192,10 @@
 	Our analysis was heavily constrained by the availability of good graph data. We tried to construct random graphs using the Erdős - Renyi model but found that the uniform distribution of edges between pairs of vertices results in very small clique sizes, which limits the graphs' usefulness to our analysis. We also looked at a slightly more complex graph generation model consisting of vertex typing and type-wise connection probabilities. While graphs of this model yielded significantly larger clique sizes, they still failed to mimic the eccentricity distributions of social media graphs and were difficult to generate for varying parameters of $n$ and $m$.
 	
 	Given more time, we would have considered other graph generation models to aid in analysis. One family of graph models, the Kronecker Product Graph Model construction, has been very successful in mimicking social network graphs\cite{Leskovec:2010:KGA:1756006.1756039}, including Facebook friend graphs\cite{moreno2013block}. Given the ability to generate these social network graphs of arbitrary size, we could have further tested the limitations and runtime of our solver.
-	
 	\section{Resources}
 	The code and data involved in this project is publicly available at \url{https://github.com/moward/CliqueSolver}.
 	
+	\newpage
 	\printbibliography
 
 \end{document}
